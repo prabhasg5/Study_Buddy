@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Buddy - Your Interactive Learning Platform</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary-color: #ff3eb5;
+            --bg-color: #000;
+            --text-color: #fff;
+            --feature-inactive: rgba(255, 255, 255, 0.3);
+            --feature-active: rgba(255, 255, 255, 1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            height: 500vh; /* Allows for scrolling through all features */
+        }
+
+        .container {
+            position: fixed;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-start;
+            width: 100%;
+            padding: 2rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo .highlight {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .progress-container {
+            position: fixed;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 80vh;
+            width: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 0%;
+            width: 100%;
+            background-color: var(--primary-color);
+            transition: height 0.3s ease;
+        }
+
+        .content {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            padding: 0 2rem;
+        }
+
+        .features-section {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 4rem;
+            z-index: 10;
+        }
+
+        .feature-item {
+            margin: 2.5rem 0;
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .feature-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            font-size: 1rem;
+            line-height: 1.5;
+            opacity: 0.7;
+        }
+
+        .animation-section {
+            width: 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-image {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            object-fit: cover;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 1s ease, transform 1s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(255, 62, 181, 0.3);
+        }
+
+        .feature-image.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .get-started-btn {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.8rem 2.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 100;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .get-started-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .btn-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-arrow {
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .get-started-btn:hover .btn-arrow {
+            transform: translateX(5px);
+        }
+
+        .btn-ripple {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+            transform: scale(0);
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        /* Mobile styles */
+        @media screen and (max-width: 768px) {
+            body {
+                height: 100vh;
+                overflow-y: hidden;
+                overflow-x: auto;
+            }
+
+            .container {
+                width: 500vw; /* 5 features * 100vw */
+                height: 100vh;
+                flex-direction: row;
+            }
+
+            .content {
+                flex-direction: column;
+                width: 100vw;
+                flex-shrink: 0;
+                padding: 1rem;
+            }
+
+            .features-section {
+                width: 100%;
+                height: 50vh;
+                padding-left: 1rem;
+                justify-content: flex-start;
+                padding-top: 3rem;
+            }
+
+            .animation-section {
+                width: 100%;
+                height: 50vh;
+                order: -1; /* Show animation at the top on mobile */
+            }
+
+            .feature-item {
+                margin: 1rem 0;
+            }
+
+            .feature-title {
+                font-size: 1.8rem;
+            }
+
+            .progress-container {
+                left: 0;
+                top: auto;
+                bottom: 3rem;
+                transform: none;
+                height: 4px;
+                width: 80vw;
+            }
+
+            .progress-bar {
+                height: 100%;
+                width: 0%;
+                transition: width 0.3s ease;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .feature-image {
+                width: 250px;
+                height: 250px;
+            }
+
+            /* Multi-screen horizontal layout */
+            .mobile-screens {
+                display: flex;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 500vw; /* 5 features * 100vw */
+                height: 100vh;
+            }
+
+            .mobile-screen {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+            }
+
+            .mobile-animation {
+                width: 100%;
+                height: 50vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-feature {
+                width: 100%;
+                height: 50vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <div class="logo">
+                <span class="highlight">Study</span>Buddy
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="content">
+            <div class="features-section">
+                <div class="feature-item" data-index="0" id="feature1">
+                    <h2 class="feature-title">Course Integration</h2>
+                    <p class="feature-description">Seamlessly integrate with your existing courses and learning platforms, making it easier to organize your study materials in one place.</p>
+                </div>
+                
+                <div class="feature-item" data-index="1" id="feature2">
+                    <h2 class="feature-title">Learning Path</h2>
+                    <p class="feature-description">Personalized learning paths tailored to your goals and pace, ensuring a structured and efficient learning experience.</p>
+                </div>
+                
+                <div class="feature-item" data-index="2" id="feature3">
+                    <h2 class="feature-title">Visual Explanation</h2>
+                    <p class="feature-description">Complex concepts broken down into visual elements for better understanding and retention of information.</p>
+                </div>
+                
+                <div class="feature-item" data-index="3" id="feature4">
+                    <h2 class="feature-title">AI Avatar Integration</h2>
+                    <p class="feature-description">Personal AI study companion that adapts to your learning style and provides guidance throughout your educational journey.</p>
+                </div>
+                
+                <div class="feature-item" data-index="4" id="feature5">
+                    <h2 class="feature-title">V Labs</h2>
+                    <p class="feature-description">Virtual laboratories that allow you to experiment and apply theoretical knowledge in a safe, interactive environment.</p>
+                </div>
+            </div>
+            
+            <div class="animation-section">
+                <div class="image-container">
+                    <img src="/api/placeholder/400/320" alt="Course Integration" class="feature-image" id="image1" data-index="0">
+                    <img src="/api/placeholder/400/320" alt="Learning Path" class="feature-image" id="image2" data-index="1">
+                    <img src="/api/placeholder/400/320" alt="Visual Explanation" class="feature-image" id="image3" data-index="2">
+                    <img src="/api/placeholder/400/320" alt="AI Avatar" class="feature-image" id="image4" data-index="3">
+                    <img src="/api/placeholder/400/320" alt="V Labs" class="feature-image" id="image5" data-index="4">
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Layout: Horizontal Screens -->
+        <div class="mobile-screens" id="mobileScreens">
+            <div class="mobile-screen" id="mobileScreen1">
+                <div class="mobile-animation">
+                    <img src="/api/placeholder/400/320" alt="Course Integration" class="feature-image active">
+                </div>
+                <div class="mobile-feature">
+                    <h2 class="feature-title">Course Integration</h2>
+                    <p class="feature-description">Seamlessly integrate with your existing courses and learning platforms, making it easier to organize your study materials in one place.</p>
+                </div>
+            </div>
+            
+            <div class="mobile-screen" id="mobileScreen2">
+                <div class="mobile-animation">
+                    <img src="/api/placeholder/400/320" alt="Learning Path" class="feature-image active">
+                </div>
+                <div class="mobile-feature">
+                    <h2 class="feature-title">Learning Path</h2>
+                    <p class="feature-description">Personalized learning paths tailored to your goals and pace, ensuring a structured and efficient learning experience.</p>
+                </div>
+            </div>
+            
+            <div class="mobile-screen" id="mobileScreen3">
+                <div class="mobile-animation">
+                    <img src="/api/placeholder/400/320" alt="Visual Explanation" class="feature-image active">
+                </div>
+                <div class="mobile-feature">
+                    <h2 class="feature-title">Visual Explanation</h2>
+                    <p class="feature-description">Complex concepts broken down into visual elements for better understanding and retention of information.</p>
+                </div>
+            </div>
+            
+            <div class="mobile-screen" id="mobileScreen4">
+                <div class="mobile-animation">
+                    <img src="/api/placeholder/400/320" alt="AI Avatar" class="feature-image active">
+                </div>
+                <div class="mobile-feature">
+                    <h2 class="feature-title">AI Avatar Integration</h2>
+                    <p class="feature-description">Personal AI study companion that adapts to your learning style and provides guidance throughout your educational journey.</p>
+                </div>
+            </div>
+            
+            <div class="mobile-screen" id="mobileScreen5">
+                <div class="mobile-animation">
+                    <img src="/api/placeholder/400/320" alt="V Labs" class="feature-image active">
+                </div>
+                <div class="mobile-feature">
+                    <h2 class="feature-title">V Labs</h2>
+                    <p class="feature-description">Virtual laboratories that allow you to experiment and apply theoretical knowledge in a safe, interactive environment.</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="get-started-btn" id="getStartedBtn">
+            <span class="btn-text">Let's get on a call</span>
+            <span class="btn-arrow">→</span>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBar = document.getElementById('progressBar');
+            const featureItems = document.querySelectorAll('.feature-item');
+            const featureImages = document.querySelectorAll('.feature-image');
+            const getStartedBtn = document.getElementById('getStartedBtn');
+            const mainContainer = document.getElementById('mainContainer');
+            const mobileScreens = document.getElementById('mobileScreens');
+            
+            let isMobile = window.innerWidth <= 768;
+            let currentFeatureIndex = 0;
+            let lastScrollPosition = 0;
+            let scrollDirection = 'down';
+            let ticking = false;
+            
+            // Hide mobile layout on desktop
+            if (!isMobile) {
+                mobileScreens.style.display = 'none';
+            } else {
+                // Desktop content is still visible but fixed
+                mainContainer.style.display = 'none'; 
+                mobileScreens.style.display = 'flex';
+            }
+            
+            // Update view on resize
+            window.addEventListener('resize', function() {
+                isMobile = window.innerWidth <= 768;
+                
+                if (!isMobile) {
+                    mobileScreens.style.display = 'none';
+                    mainContainer.style.display = 'flex';
+                    document.body.style.overflowY = 'auto';
+                    document.body.style.overflowX = 'hidden';
+                    document.body.style.height = '500vh';
+                } else {
+                    mainContainer.style.display = 'none';
+                    mobileScreens.style.display = 'flex';
+                    document.body.style.overflowY = 'hidden';
+                    document.body.style.overflowX = 'auto';
+                    document.body.style.height = '100vh';
+                }
+            });
+
+            // DESKTOP: Vertical scrolling and feature highlighting
+            function handleScroll() {
+                if (isMobile) return;
+                
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrollPercentage = (scrollTop / scrollHeight) * 100;
+                
+                progressBar.style.height = scrollPercentage + '%';
+                
+                // Track scroll direction
+                scrollDirection = scrollTop > lastScrollPosition ? 'down' : 'up';
+                lastScrollPosition = scrollTop;
+                
+                // Calculate which feature should be active based on scroll position
+                const featureCount = featureItems.length;
+                const sectionSize = scrollHeight / featureCount;
+                currentFeatureIndex = Math.min(Math.floor(scrollTop / sectionSize), featureCount - 1);
+                
+                // Update features and images
+                updateFeaturesOpacity(scrollTop, scrollHeight);
+                updateActiveImage();
+                
+                ticking = false;
+            }
+            
+            function updateFeaturesOpacity(scrollTop, scrollHeight) {
+                const totalSections = featureItems.length;
+                const sectionHeight = scrollHeight / totalSections;
+                
+                featureItems.forEach((item, index) => {
+                    // Calculate base opacity based on scroll position
+                    const sectionStart = index * sectionHeight;
+                    const sectionEnd = sectionStart + sectionHeight;
+                    
+                    // Calculate how far through this section we've scrolled (0-1)
+                    let progress = 0;
+                    
+                    if (scrollTop >= sectionStart && scrollTop <= sectionEnd) {
+                        progress = (scrollTop - sectionStart) / sectionHeight;
+                    } else if (scrollTop > sectionEnd) {
+                        progress = 1; // Past this section
+                    }
+                    
+                    // Gradually increase opacity from 0.3 to 1
+                    const opacity = 0.3 + (progress * 0.7);
+                    item.style.opacity = Math.min(opacity, 1);
+                    
+                    // Add active class for current feature
+                    if (index === currentFeatureIndex) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+            
+            function updateActiveImage() {
+                featureImages.forEach((img, index) => {
+                    if (index === currentFeatureIndex) {
+                        img.classList.add('active');
+                    } else {
+                        img.classList.remove('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(handleScroll);
+                    ticking = true;
+                }
+            });
+            
+            // MOBILE: Horizontal scrolling
+            let touchStartX = 0;
+            let currentTranslateX = 0;
+            
+            function handleHorizontalScroll() {
+                if (!isMobile) return;
+                
+                const scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;
+                const maxScroll = document.body.scrollWidth - window.innerWidth;
+                const scrollPercentage = (scrollLeft / maxScroll) * 100;
+                
+                progressBar.style.width = scrollPercentage + '%';
+                
+                // Calculate which feature is visible based on horizontal scroll
+                const screenWidth = window.innerWidth;
+                const featureIndex = Math.min(Math.floor(scrollLeft / screenWidth), 4);
+                currentFeatureIndex = featureIndex;
+                
+                // Manually update mobile view position
+                mobileScreens.style.transform = `translateX(-${scrollLeft}px)`;
+                
+                ticking = false;
+            }
+            
+            window.addEventListener('scroll', function() {
+                if (isMobile && !ticking) {
+                    window.requestAnimationFrame(handleHorizontalScroll);
+                    ticking = true;
+                }
+            });
+
+            // Touch events for mobile horizontal scrolling
+            document.addEventListener('touchstart', function(e) {
+                if (!isMobile) return;
+                touchStartX = e.touches[0].clientX;
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (!isMobile) return;
+                const touchX = e.touches[0].clientX;
+                const diff = touchStartX - touchX;
+                
+                // Scroll the body
+                window.scrollTo(currentTranslateX + diff, 0);
+            });
+            
+            document.addEventListener('touchend', function(e) {
+                if (!isMobile) return;
+                currentTranslateX = window.scrollX;
+            });
+
+            // Button ripple effect
+            getStartedBtn.addEventListener('mouseenter', function(e) {
+                createRippleEffect(e);
+            });
+
+            function createRippleEffect(e) {
+                const button = getStartedBtn;
+                const ripple = document.createElement('span');
+                ripple.classList.add('btn-ripple');
+                
+                const rect = button.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                button.appendChild(ripple);
+                
+                animateRipple(ripple);
+            }
+
+            function animateRipple(ripple) {
+                const animationDuration = 600; // ms
+                const startTime = Date.now();
+                
+                function frame() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    
+                    // Scale from 0 to 20
+                    const scale = progress * 20;
+                    
+                    // Fade out towards the end
+                    const opacity = progress > 0.7 ? 1 - ((progress - 0.7) / 0.3) : 1;
+                    
+                    ripple.style.transform = `scale(${scale})`;
+                    ripple.style.opacity = opacity;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(frame);
+                    } else {
+                        ripple.remove();
+                    }
+                }
+                
+                requestAnimationFrame(frame);
+            }
+
+            // Initialize the first feature and image
+            featureItems[0].style.opacity = 0.3;
+            featureImages[0].classList.add('active');
+            
+            // Trigger initial scroll handling
+            handleScroll();
+            if (isMobile) {
+                handleHorizontalScroll();
+            }
+        });
+    </script>
+</body>
+</html>
