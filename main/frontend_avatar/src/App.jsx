@@ -20,7 +20,6 @@ function App() {
       <Leva hidden/>
     
       <UI  />
-      <SpeechToText />
       <VLabsButton />
       
       

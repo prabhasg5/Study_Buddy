@@ -20,7 +20,8 @@ export const UI = ({ hidden, ...props }) => {
     sendChatMessage,
     progressStage,
     chatMessages,
-    isThinking
+    isThinking,
+    resetAvatarToIdle
   } = useChat();
 
   // State variables
@@ -28,7 +29,14 @@ export const UI = ({ hidden, ...props }) => {
   const [audioMuted, setAudioMuted] = useState(false);
   const [voiceChatEnabled, setVoiceChatEnabled] = useState(false);
   const [chatboxVisible, setChatboxVisible] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [recognition, setRecognition] = useState(null);
+  const [error, setError] = useState('');
+  const [speechBoxVisible, setSpeechBoxVisible] = useState(false);
 
+
+ 
   // Scroll to bottom of chat when messages change
   useEffect(() => {
     if (chatboxRef.current) {
@@ -36,9 +44,51 @@ export const UI = ({ hidden, ...props }) => {
     }
   }, [chatMessages, isThinking]);
 
-  // Function for sending a regular chat message has been removed
+  // Initialize speech recognition
+  useEffect(() => {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      setError('Speech recognition is not supported in this browser.');
+      return;
+    }
 
-  // Function for the learning chat
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognitionInstance = new SpeechRecognition();
+    
+    recognitionInstance.continuous = true;
+    recognitionInstance.interimResults = true;
+    recognitionInstance.lang = 'en-US';
+
+    recognitionInstance.onstart = () => {
+      setIsListening(true);
+      setError('');
+    };
+
+    recognitionInstance.onresult = (event) => {
+      const current = event.resultIndex;
+      const transcriptText = event.results[current][0].transcript;
+      setTranscript(transcriptText);
+    };
+
+    recognitionInstance.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      setError(`Error: ${event.error}`);
+      setIsListening(false);
+    };
+
+    recognitionInstance.onend = () => {
+      setIsListening(false);
+    };
+
+    setRecognition(recognitionInstance);
+
+    return () => {
+      if (recognitionInstance) {
+        recognitionInstance.stop();
+      }
+    };
+  }, []);
+
+  // Function for sending a regular chat message
   const handleSendChatMessage = () => {
     if (!loading && chatInput.current) {
       const messageText = chatInput.current.value;
@@ -47,6 +97,28 @@ export const UI = ({ hidden, ...props }) => {
         sendChatMessage(messageText);
         chatInput.current.value = "";
       }
+    }
+  };
+
+  // Function for sending voice message
+  const handleSendVoiceMessage = async () => {
+    if (!transcript.trim()) {
+      setError('Please say something first!');
+      return;
+    }
+
+    try {
+      setError('');
+      
+      // Send the transcript as a chat message
+      await sendChatMessage(transcript);
+      
+      // Clear the transcript after sending
+      setTranscript('');
+      
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError(`Failed to send message: ${err.message}`);
     }
   };
 
@@ -59,6 +131,24 @@ export const UI = ({ hidden, ...props }) => {
         stageInput.current.value = "";
       }
     }
+  };
+
+  // Function to toggle voice listening
+  const toggleListening = () => {
+    if (!recognition) return;
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      setTranscript('');
+      recognition.start();
+    }
+  };
+
+  // Reset the transcript
+  const handleReset = () => {
+    setTranscript('');
+    setError('');
   };
 
   // Redirect to file upload
@@ -79,30 +169,23 @@ export const UI = ({ hidden, ...props }) => {
     }
   };
 
-  // Update this function in your UI component
-const handleButtonClick = (action, value) => {
-  console.log(`Button clicked: ${action} - Setting to: ${value}`);
-  
-  // Then perform the actual action
-  if (action === "camera") {
-    setCameraZoomed(value);
-  } else if (action === "audio") {
-    setAudioMuted(value);
-  } else if (action === "voice") {
-    setVoiceChatEnabled(value);
+  // Handle button clicks for various controls
+  const handleButtonClick = (action, value) => {
+    console.log(`Button clicked: ${action} - Setting to: ${value}`);
     
-    // Start or stop recording based on the voice chat state
-    if (value) {
-      // If turning on voice chat, don't start recording immediately
-      console.log("Voice chat enabled, ready to record");
-    } else {
-      // If turning off voice chat, stop any ongoing recording
-      if (isRecording) {
-        stopRecording();
+    // Then perform the actual action
+    if (action === "camera") {
+      setCameraZoomed(value);
+    } else if (action === "audio") {
+      setAudioMuted(value);
+    } else if (action === "voice") {
+      // Show the speech box and hide other UI elements
+      setSpeechBoxVisible(value);
+      if (value) {
+        setChatboxVisible(false);
       }
     }
-  }
-};
+  };
 
   // File upload handlers
   const handleDrag = (e) => {
@@ -130,9 +213,94 @@ const handleButtonClick = (action, value) => {
     }
   };
 
+  // Initialize speech recognition
+useEffect(() => {
+  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+    setError('Speech recognition is not supported in this browser.');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognitionInstance = new SpeechRecognition();
+  
+  recognitionInstance.continuous = true;
+  recognitionInstance.interimResults = true;
+  recognitionInstance.lang = 'en-US';
+
+  recognitionInstance.onstart = () => {
+    setIsListening(true);
+    setError('');
+  };
+
+  recognitionInstance.onresult = (event) => {
+    const current = event.resultIndex;
+    const transcriptText = event.results[current][0].transcript;
+    setTranscript(transcriptText);
+  };
+
+  recognitionInstance.onerror = (event) => {
+    console.error('Speech recognition error', event.error);
+    setError(`Error: ${event.error}`);
+    setIsListening(false);
+  };
+
+  recognitionInstance.onend = () => {
+    setIsListening(false);
+  };
+
+  setRecognition(recognitionInstance);
+
+  return () => {
+    if (recognitionInstance) {
+      recognitionInstance.stop();
+    }
+  };
+}, []);
+
+
+// Function for sending voice message
+/*const handleSendVoiceMessage = async () => {
+  if (!transcript.trim()) {
+    setError('Please say something first!');
+    return;
+  }
+
+  try {
+    setError('');
+    
+    // Send the transcript as a chat message
+    await sendChatMessage(transcript);
+    
+    // Clear the transcript after sending
+    setTranscript('');
+    
+  } catch (err) {
+    console.error('Error sending message:', err);
+    setError(`Failed to send message: ${err.message}`);
+  }
+};
+
+// Function to toggle voice listening
+const toggleListening = () => {
+  if (!recognition) return;
+
+  if (isListening) {
+    recognition.stop();
+  } else {
+    setTranscript('');
+    recognition.start();
+  }
+};
+
+// Reset the transcript
+const handleReset = () => {
+  setTranscript('');
+  setError('');
+}; */
+
   const renderStageContent = () => {
-    // Don't render stage content when chatbox is visible
-    if (chatboxVisible) return null;
+    // Don't render stage content when chatbox or speech box is visible
+    if (chatboxVisible || speechBoxVisible) return null;
     
     switch (stage) {
       case "subject":
@@ -258,6 +426,127 @@ const handleButtonClick = (action, value) => {
       default:
         return null;
     }
+  };
+
+  // Render voice chat box
+  const renderSpeechBox = () => {
+    if (!speechBoxVisible) return null;
+    
+    return (
+      <div 
+        className="fixed right-0 top-0 bottom-0 w-1/2 bg-white/40 backdrop-blur-lg shadow-xl z-20 flex flex-col transition-all duration-300 ease-in-out"
+        style={{
+          transform: speechBoxVisible ? "translateX(0)" : "translateX(100%)"
+        }}
+      >
+        {/* Close button */}
+        <button 
+          onClick={() => setSpeechBoxVisible(false)} 
+          className="absolute left-0 top-12 transform -translate-x-full bg-pink-500 hover:bg-pink-600 text-white p-3 rounded-l-lg shadow-md"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        {/* Voice chat header */}
+        <div className="bg-pink-500 text-white p-4 flex items-center justify-between">
+          <h3 className="text-xl font-bold">Voice Chat</h3>
+          <div className="text-sm">
+            {subject ? `${subject} Assistant` : "Voice Assistant"}
+          </div>
+        </div>
+        
+        {/* Voice chat content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex justify-center mb-6 gap-4">
+            <button
+              onClick={toggleListening}
+              className={`px-6 py-3 rounded-full font-medium ${
+                isListening 
+                  ? 'bg-red-500 text-white hover:bg-red-600' 
+                  : 'bg-pink-500 text-white hover:bg-pink-600'
+              }`}
+            >
+              {isListening ? 'Stop Listening' : 'Start Listening'}
+            </button>
+            
+            <button
+              onClick={handleReset}
+              className="px-6 py-3 bg-gray-200 rounded-full font-medium hover:bg-gray-300"
+            >
+              Reset
+            </button>
+            
+            <button
+              onClick={handleSendVoiceMessage}
+              disabled={!transcript.trim() || isThinking || loading}
+              className={`px-6 py-3 rounded-full font-medium ${
+                !transcript.trim() || isThinking || loading
+                  ? 'bg-pink-300 cursor-not-allowed'
+                  : 'bg-pink-500 text-white hover:bg-pink-600'
+              }`}
+            >
+              {isThinking ? 'Processing...' : 'Send Message'}
+            </button>
+          </div>
+          
+          {isListening && (
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse"></div>
+              <p className="text-gray-500">Listening...</p>
+            </div>
+          )}
+          
+          {error && (
+            <div className="p-4 mb-4 bg-red-100 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Transcript:</h3>
+            <div className="p-4 bg-pink-50 rounded-lg min-h-16 whitespace-pre-wrap">
+              {transcript || 'Say something...'}
+            </div>
+          </div>
+          
+          {/* Recent messages */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-medium mb-4">Recent Messages:</h3>
+            <div className="space-y-4">
+              {chatMessages.slice(-3).map((msg, index) => (
+                <div 
+                  key={index} 
+                  className={`p-4 rounded-lg ${
+                    msg.sender === "user" 
+                      ? "bg-pink-100 text-black ml-auto max-w-[80%] rounded-tr-none" 
+                      : "bg-white/40 text-black mr-auto max-w-[80%] rounded-tl-none"
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                  <div className={`text-xs mt-1 ${msg.sender === "user" ? "text-right" : "text-left"} text-gray-500`}>
+                    {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {isThinking && (
+            <div className="mb-4 max-w-[80%] mr-auto">
+              <div className="p-3 rounded-lg bg-gray-200 text-black rounded-tl-none flex items-center">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Render chatbox
@@ -426,8 +715,6 @@ const handleButtonClick = (action, value) => {
         <div className="absolute top-1/4 w-full pointer-events-auto">
           {renderStageContent()}
         </div>
-        
-        {/* Removed any middle page mermaid diagram display - diagrams now only appear in chat */}
 
         {/* Controls with explicit z-index to ensure they're clickable */}
         <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 z-50">
@@ -528,12 +815,12 @@ const handleButtonClick = (action, value) => {
             )}
           </button>
           <button
-  onClick={() => handleButtonClick("voice", !voiceChatEnabled)}
-  className="pointer-events-auto bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-md cursor-pointer"
-  title="Voice Chat"
-  type="button"
->
-            {voiceChatEnabled ? (
+            onClick={() => handleButtonClick("voice", !speechBoxVisible)}
+            className="pointer-events-auto bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-md cursor-pointer"
+            title="Voice Chat"
+            type="button"
+          >
+            {speechBoxVisible ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -565,8 +852,8 @@ const handleButtonClick = (action, value) => {
               </svg>
             )}
           </button>
-          {/* Chat toggle button - only show when chatbox is hidden */}
-          {!chatboxVisible && (
+          {/* Chat toggle button - only show when chatbox is hidden and speech box is hidden */}
+          {!chatboxVisible && !speechBoxVisible && (
             <button
               onClick={() => setChatboxVisible(true)}
               className="pointer-events-auto bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-md cursor-pointer"
@@ -592,10 +879,11 @@ const handleButtonClick = (action, value) => {
         </div>
       </div>
 
-      {/* Bottom chat input has been removed */}
-
       {/* Render the chatbox */}
       {renderChatbox()}
+      
+      {/* Render the speech box */}
+      {renderSpeechBox()}
     </>
   );
 };
