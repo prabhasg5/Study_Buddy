@@ -1,0 +1,32 @@
+{
+  "name": "study-buddy-backend",
+  "version": "1.0.0",
+  "description": "Backend for the study buddy web app",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js --ext js"
+  },
+  "author": "prabhasmekala1@gmail.com",
+  "dependencies": {
+    "assemblyai": "^4.9.0",
+    "axios": "^1.8.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "elevenlabs": "^1.53.0",
+    "elevenlabs-node": "^2.0.3",
+    "express": "^4.21.2",
+    "groq": "^3.78.1",
+    "llama": "^1.0.0",
+    "mermaid": "^11.5.0",
+    "mic": "^2.1.2",
+    "openai": "^4.26.0",
+    "puppeteer": "^24.4.0",
+    "uuid": "^11.1.0",
+    "wav": "^1.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
